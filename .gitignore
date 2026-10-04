@@ -11,6 +11,19 @@ node_modules
 dist
 dist-ssr
 *.local
+.env
+
+# Maven & Java Build artifacts
+target/
+backend/target/
+.classpath
+.factorypath
+.project
+.settings/
+backend/.classpath
+backend/.factorypath
+backend/.project
+backend/.settings/
 
 # Editor directories and files
 .vscode/*
