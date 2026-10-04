@@ -50,11 +50,11 @@ public class ReactionService {
         if ("GA".equals(connType)) {
             targetServerId = "ga-server-mumbai";
             targetServerRegion = "aws-global-accelerator";
-            simulatedNetworkDelayMs = 10; // Accelerated fast routing
+            simulatedNetworkDelayMs = 1; // Ultra-fast AWS Global Accelerator edge backbone
         } else {
             targetServerId = "ec2-direct-mumbai";
             targetServerRegion = "ap-south-1";
-            simulatedNetworkDelayMs = 45; // Direct public internet routing delay
+            simulatedNetworkDelayMs = 45; // Standard public internet routing delay
         }
 
         Reaction reaction = Reaction.builder()
