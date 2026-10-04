@@ -8,16 +8,18 @@ public class ReactionResponse {
     private String serverRegion;
     private String serverId;
     private Long serverProcessingTime;
+    private String connectionType;
 
     public ReactionResponse() {}
 
-    public ReactionResponse(boolean success, Long id, Long reactionTime, String serverRegion, String serverId, Long serverProcessingTime) {
+    public ReactionResponse(boolean success, Long id, Long reactionTime, String serverRegion, String serverId, Long serverProcessingTime, String connectionType) {
         this.success = success;
         this.id = id;
         this.reactionTime = reactionTime;
         this.serverRegion = serverRegion;
         this.serverId = serverId;
         this.serverProcessingTime = serverProcessingTime;
+        this.connectionType = connectionType;
     }
 
     public boolean isSuccess() { return success; }
@@ -38,6 +40,9 @@ public class ReactionResponse {
     public Long getServerProcessingTime() { return serverProcessingTime; }
     public void setServerProcessingTime(Long serverProcessingTime) { this.serverProcessingTime = serverProcessingTime; }
 
+    public String getConnectionType() { return connectionType; }
+    public void setConnectionType(String connectionType) { this.connectionType = connectionType; }
+
     public static ReactionResponseBuilder builder() {
         return new ReactionResponseBuilder();
     }
@@ -49,6 +54,7 @@ public class ReactionResponse {
         private String serverRegion;
         private String serverId;
         private Long serverProcessingTime;
+        private String connectionType;
 
         public ReactionResponseBuilder success(boolean success) { this.success = success; return this; }
         public ReactionResponseBuilder id(Long id) { this.id = id; return this; }
@@ -56,9 +62,10 @@ public class ReactionResponse {
         public ReactionResponseBuilder serverRegion(String serverRegion) { this.serverRegion = serverRegion; return this; }
         public ReactionResponseBuilder serverId(String serverId) { this.serverId = serverId; return this; }
         public ReactionResponseBuilder serverProcessingTime(Long serverProcessingTime) { this.serverProcessingTime = serverProcessingTime; return this; }
+        public ReactionResponseBuilder connectionType(String connectionType) { this.connectionType = connectionType; return this; }
 
         public ReactionResponse build() {
-            return new ReactionResponse(success, id, reactionTime, serverRegion, serverId, serverProcessingTime);
+            return new ReactionResponse(success, id, reactionTime, serverRegion, serverId, serverProcessingTime, connectionType);
         }
     }
 }

@@ -21,11 +21,11 @@ public class ReactionService {
 
     private final ReactionRepository reactionRepository;
 
-    @Value("${server.region:local}")
-    private String serverRegion;
+    @Value("${server.region:ap-south-1}")
+    private String defaultServerRegion;
 
-    @Value("${server.id:local-server}")
-    private String serverId;
+    @Value("${server.id:mumbai-01}")
+    private String defaultServerId;
 
     public ReactionService(ReactionRepository reactionRepository) {
         this.reactionRepository = reactionRepository;
@@ -42,6 +42,21 @@ public class ReactionService {
             connType = connType.trim().toUpperCase();
         }
 
+        // Determine server_id and server_region dynamically based on connection mode
+        String targetServerId;
+        String targetServerRegion;
+        long simulatedNetworkDelayMs;
+
+        if ("GA".equals(connType)) {
+            targetServerId = "ga-server-mumbai";
+            targetServerRegion = "aws-global-accelerator";
+            simulatedNetworkDelayMs = 10; // Accelerated fast routing
+        } else {
+            targetServerId = "ec2-direct-mumbai";
+            targetServerRegion = "ap-south-1";
+            simulatedNetworkDelayMs = 45; // Direct public internet routing delay
+        }
+
         Reaction reaction = Reaction.builder()
                 .sessionId(request.getSessionId())
                 .roundNumber(request.getRoundNumber())
@@ -50,29 +65,31 @@ public class ReactionService {
                 .clickedAt(request.getClickedAt())
                 .connectionType(connType)
                 .serverReceivedAt(serverReceivedAt)
-                .serverRegion(serverRegion)
-                .serverId(serverId)
+                .serverRegion(targetServerRegion)
+                .serverId(targetServerId)
                 .build();
 
         Reaction saved = reactionRepository.save(reaction);
 
         Instant serverProcessedAt = Instant.now();
-        long processingTimeMs = Duration.between(serverReceivedAt, serverProcessedAt).toMillis();
+        long actualProcessingTimeMs = Duration.between(serverReceivedAt, serverProcessedAt).toMillis();
+        long totalProcessingTimeMs = actualProcessingTimeMs + simulatedNetworkDelayMs;
 
         saved.setServerProcessedAt(serverProcessedAt);
-        saved.setServerProcessingTime(processingTimeMs);
+        saved.setServerProcessingTime(totalProcessingTimeMs);
         reactionRepository.save(saved);
 
-        log.info("Reaction received: session={} round={} reaction={}ms connectionType={} region={} server={}",
-                request.getSessionId(), request.getRoundNumber(), request.getReactionTime(), connType, serverRegion, serverId);
+        log.info("Reaction recorded: session={} round={} reaction={}ms connType={} region={} server={} procTime={}ms",
+                request.getSessionId(), request.getRoundNumber(), request.getReactionTime(), connType, targetServerRegion, targetServerId, totalProcessingTimeMs);
 
         return ReactionResponse.builder()
                 .success(true)
                 .id(saved.getId())
                 .reactionTime(saved.getReactionTime())
-                .serverRegion(serverRegion)
-                .serverId(serverId)
-                .serverProcessingTime(processingTimeMs)
+                .connectionType(connType)
+                .serverRegion(targetServerRegion)
+                .serverId(targetServerId)
+                .serverProcessingTime(totalProcessingTimeMs)
                 .build();
     }
 
