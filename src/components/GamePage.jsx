@@ -17,9 +17,6 @@ export default function GamePage({ onGameComplete }) {
   const [latestReactionTime, setLatestReactionTime] = useState(null);
   const [targetPosition, setTargetPosition] = useState({ top: '50%', left: '50%' });
 
-  // Connection mode state: 'DIRECT' (Normal) | 'GA' (Global Accelerator)
-  const [connectionMode, setConnectionMode] = useState('DIRECT');
-
   const gameAreaRef = useRef(null);
   const targetShownTimeRef = useRef(0);
   const timerRef = useRef(null);
@@ -76,14 +73,13 @@ export default function GamePage({ onGameComplete }) {
     setReactionTimes(updatedTimes);
     setGameState('round_result');
 
-    // 3. Send payload asynchronously to backend with chosen connectionType
+    // 3. Send payload asynchronously to Spring Boot backend
     recordReaction({
       sessionId: sessionIdRef.current,
       roundNumber: currentRound,
       reactionTime: elapsed,
       targetShownAt: new Date(Date.now() - elapsed).toISOString(),
       clickedAt: new Date().toISOString(),
-      connectionType: connectionMode,
     });
   };
 
@@ -115,60 +111,9 @@ export default function GamePage({ onGameComplete }) {
 
   return (
     <div className="game-container" style={{ textAlign: 'center', maxWidth: '640px', margin: '0 auto' }}>
-      <div style={{ marginBottom: '20px' }}>
+      <div style={{ marginBottom: '28px' }}>
         <h1 className="title-large" style={{ letterSpacing: '-0.03em' }}>REACTION</h1>
         <p className="subtitle-text">Test your reflexes.</p>
-      </div>
-
-      {/* Connection Mode Switch */}
-      <div style={{ marginBottom: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-        <div style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)', letterSpacing: '0.02em' }}>
-          Connection
-        </div>
-        <div
-          style={{
-            display: 'inline-flex',
-            background: 'var(--bg-secondary)',
-            padding: '4px',
-            borderRadius: 'var(--radius-pill)',
-            border: '1px solid var(--border-subtle)',
-          }}
-        >
-          <button
-            onClick={() => setConnectionMode('DIRECT')}
-            style={{
-              padding: '6px 18px',
-              fontSize: '13px',
-              fontWeight: connectionMode === 'DIRECT' ? '600' : '400',
-              borderRadius: 'var(--radius-pill)',
-              border: 'none',
-              background: connectionMode === 'DIRECT' ? 'var(--bg-primary)' : 'transparent',
-              color: connectionMode === 'DIRECT' ? 'var(--text-primary)' : 'var(--text-secondary)',
-              boxShadow: connectionMode === 'DIRECT' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-              cursor: 'pointer',
-              transition: 'all 0.15s ease',
-            }}
-          >
-            Normal
-          </button>
-          <button
-            onClick={() => setConnectionMode('GA')}
-            style={{
-              padding: '6px 18px',
-              fontSize: '13px',
-              fontWeight: connectionMode === 'GA' ? '600' : '400',
-              borderRadius: 'var(--radius-pill)',
-              border: 'none',
-              background: connectionMode === 'GA' ? 'var(--bg-primary)' : 'transparent',
-              color: connectionMode === 'GA' ? 'var(--accent-color)' : 'var(--text-secondary)',
-              boxShadow: connectionMode === 'GA' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-              cursor: 'pointer',
-              transition: 'all 0.15s ease',
-            }}
-          >
-            Global Accelerator
-          </button>
-        </div>
       </div>
 
       <div
@@ -308,7 +253,7 @@ export default function GamePage({ onGameComplete }) {
               {averageTime} <span style={{ fontSize: '22px', fontWeight: '500', color: 'var(--text-secondary)' }}>ms</span>
             </div>
             <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '24px' }}>
-              Average reaction time ({connectionMode === 'GA' ? 'Global Accelerator' : 'Normal'})
+              Average reaction time
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '24px' }}>

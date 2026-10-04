@@ -1,24 +1,13 @@
 // API Service Layer for Reaction Challenge Spring Boot Backend
-const NORMAL_API_URL = import.meta.env.VITE_NORMAL_API_URL || import.meta.env.VITE_API_URL || 'http://localhost:8080';
-const GA_API_URL = import.meta.env.VITE_GA_API_URL || '';
-
-/**
- * Resolves API URL based on connection mode ('DIRECT' | 'GA')
- */
-export function getBaseUrl(connectionMode = 'DIRECT') {
-  if (connectionMode === 'GA' && GA_API_URL && GA_API_URL.trim() !== '') {
-    return GA_API_URL.trim();
-  }
-  return NORMAL_API_URL;
-}
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 // Helper for HTTP requests with graceful fallback layer
-async function fetchWithFallback(baseUrl, endpoint, options = {}, mockResponse) {
+async function fetchWithFallback(endpoint, options = {}, mockResponse) {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 2500);
 
-    const response = await fetch(`${baseUrl}${endpoint}`, {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       signal: controller.signal,
       headers: {
@@ -35,7 +24,7 @@ async function fetchWithFallback(baseUrl, endpoint, options = {}, mockResponse) 
 
     return await response.json();
   } catch (error) {
-    console.log(`[API Service] Backend unreachable at ${baseUrl}${endpoint} (${error.message}). Using fallback layer.`);
+    console.log(`[API Service] Backend unreachable (${error.message}). Using local fallback layer for ${endpoint}.`);
     return mockResponse();
   }
 }
@@ -43,10 +32,8 @@ async function fetchWithFallback(baseUrl, endpoint, options = {}, mockResponse) 
 /**
  * GET /api/health
  */
-export async function getHealth(connectionMode = 'DIRECT') {
-  const baseUrl = getBaseUrl(connectionMode);
+export async function getHealth() {
   return fetchWithFallback(
-    baseUrl,
     '/api/health',
     { method: 'GET' },
     () => ({
@@ -62,26 +49,16 @@ export async function getHealth(connectionMode = 'DIRECT') {
  * POST /api/reactions
  */
 export async function recordReaction(reactionData) {
-  const connType = reactionData.connectionType || 'DIRECT';
-  const baseUrl = getBaseUrl(connType);
-
-  const payload = {
-    ...reactionData,
-    connectionType: connType,
-  };
-
   return fetchWithFallback(
-    baseUrl,
     '/api/reactions',
     {
       method: 'POST',
-      body: JSON.stringify(payload),
+      body: JSON.stringify(reactionData),
     },
     () => ({
       success: true,
       id: Date.now(),
       reactionTime: reactionData.reactionTime,
-      connectionType: connType,
       serverRegion: 'local',
       serverId: 'local-server',
       serverProcessingTime: 2,
@@ -92,10 +69,8 @@ export async function recordReaction(reactionData) {
 /**
  * GET /api/analytics
  */
-export async function getAnalytics(connectionMode = 'DIRECT') {
-  const baseUrl = getBaseUrl(connectionMode);
+export async function getAnalytics() {
   return fetchWithFallback(
-    baseUrl,
     '/api/analytics',
     { method: 'GET' },
     () => ({
@@ -109,26 +84,21 @@ export async function getAnalytics(connectionMode = 'DIRECT') {
       servers: [
         { region: 'local', server: 'local-server', status: 'HEALTHY', latency: 34 },
       ],
-      directTests: 0,
-      gaTests: 0,
-      directAverageReaction: 0,
-      gaAverageReaction: 0,
     })
   );
 }
 
 /**
  * GET /api/network-test
- * Measures exact browser round-trip time
+ * Measures exact browser round-trip time: start = performance.now(), fetch, end = performance.now()
  */
-export async function runNetworkTest(connectionMode = 'DIRECT') {
-  const baseUrl = getBaseUrl(connectionMode);
+export async function runNetworkTest() {
   const startTime = performance.now();
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 2000);
 
-    const response = await fetch(`${baseUrl}/api/network-test`, {
+    const response = await fetch(`${API_BASE_URL}/api/network-test`, {
       method: 'GET',
       signal: controller.signal,
     });
@@ -150,13 +120,13 @@ export async function runNetworkTest(connectionMode = 'DIRECT') {
     // Ignore and fall through to benchmark estimation
   }
 
-  // Fallback estimation when backend is unreachable
+  // Simulated round-trip latency when backend is offline
   await new Promise((res) => setTimeout(res, 120));
   return {
-    latencyMs: connectionMode === 'GA' ? 34 : 79,
+    latencyMs: 34,
     server: 'local-server',
     region: 'local',
     status: 'Healthy',
-    source: 'Fallback Benchmark',
+    source: 'Simulated Benchmark',
   };
 }

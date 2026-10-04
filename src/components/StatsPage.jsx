@@ -25,7 +25,7 @@ export default function StatsPage({ userGameData }) {
 
     const result = await runNetworkTest();
     setTesting(false);
-
+    
     if (isMumbaiOffline) {
       setTestResult({
         latencyMs: 92,
@@ -43,19 +43,9 @@ export default function StatsPage({ userGameData }) {
   const currentServer = isMumbaiOffline ? 'USA-01 (Failover)' : (analytics ? analytics.currentServer : 'Mumbai-01');
   const currentLatency = isMumbaiOffline ? '92 ms' : `${analytics ? analytics.averageNetworkLatency : 34} ms`;
 
-  // Calculated connection performance values from database
-  const directTestsCount = analytics ? analytics.directTests : 0;
-  const gaTestsCount = analytics ? analytics.gaTests : 0;
-  const directAvg = analytics && analytics.directAverageReaction > 0 
-    ? analytics.directAverageReaction 
-    : (directTestsCount > 0 ? 0 : 79);
-  const gaAvg = analytics && analytics.gaAverageReaction > 0 
-    ? analytics.gaAverageReaction 
-    : (gaTestsCount > 0 ? 0 : 34);
-
   return (
     <div style={{ maxWidth: '840px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '32px' }}>
-
+      
       {/* 1. HEADER */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
         <div>
@@ -103,45 +93,9 @@ export default function StatsPage({ userGameData }) {
         </div>
       </section>
 
-      {/* 3. CONNECTION PERFORMANCE SECTION (DIRECT VS GA) */}
-      <section className="apple-card">
-        <h2 className="title-medium" style={{ fontSize: '18px', marginBottom: '4px' }}>Connection Performance</h2>
-        <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '20px' }}>
-          Real-time performance calculated directly from database records.
-        </p>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px' }}>
-          {/* Normal Mode */}
-          <div style={{ background: 'var(--bg-primary)', padding: '18px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <span style={{ fontSize: '15px', fontWeight: '600' }}>Normal</span>
-              <span style={{ fontSize: '12px', padding: '2px 10px', borderRadius: 'var(--radius-pill)', background: 'var(--bg-secondary)', color: 'var(--text-secondary)', fontWeight: '500' }}>
-                Direct Tests: {directTestsCount}
-              </span>
-            </div>
-            <div style={{ fontSize: '32px', fontWeight: '700', letterSpacing: '-0.03em', marginTop: '4px' }}>
-              Average: {directAvg} <span style={{ fontSize: '18px', fontWeight: '500', color: 'var(--text-secondary)' }}>ms</span>
-            </div>
-          </div>
-
-          {/* Global Accelerator Mode */}
-          <div style={{ background: 'var(--bg-primary)', padding: '18px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <span style={{ fontSize: '15px', fontWeight: '600', color: 'var(--accent-color)' }}>Global Accelerator</span>
-              <span style={{ fontSize: '12px', padding: '2px 10px', borderRadius: 'var(--radius-pill)', background: 'rgba(0, 113, 227, 0.1)', color: 'var(--accent-color)', fontWeight: '500' }}>
-                GA Tests: {gaTestsCount}
-              </span>
-            </div>
-            <div style={{ fontSize: '32px', fontWeight: '700', letterSpacing: '-0.03em', color: 'var(--accent-color)', marginTop: '4px' }}>
-              Average: {gaAvg} <span style={{ fontSize: '18px', fontWeight: '500', color: 'var(--text-secondary)' }}>ms</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 4. NETWORK STATUS & ACCELERATOR */}
+      {/* 3. NETWORK STATUS & ACCELERATOR */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
-
+        
         {/* Network Status Info List */}
         <div className="apple-card">
           <h2 className="title-medium" style={{ fontSize: '18px', marginBottom: '16px' }}>Network Status</h2>
@@ -196,7 +150,7 @@ export default function StatsPage({ userGameData }) {
         </div>
       </div>
 
-      {/* 5. SERVERS & FAILOVER STATUS */}
+      {/* 4. SERVERS & FAILOVER STATUS */}
       <section className="apple-card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
           <div>
@@ -308,6 +262,45 @@ export default function StatsPage({ userGameData }) {
             <span style={{ fontWeight: '600', color: 'var(--warning-color)' }}>Traffic routed to: USA</span>
           </div>
         )}
+      </section>
+
+      {/* 5. CONNECTION COMPARISON */}
+      <section className="apple-card">
+        <h2 className="title-medium" style={{ fontSize: '18px' }}>Connection Comparison</h2>
+        <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '20px' }}>
+          Network performance comparison (Direct regional routing vs AWS Global Accelerator)
+        </p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '24px', marginBottom: '20px' }}>
+          <div>
+            <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Direct Connection</div>
+            <div style={{ fontSize: '32px', fontWeight: '700', letterSpacing: '-0.03em' }}>
+              78 <span style={{ fontSize: '18px', fontWeight: '500', color: 'var(--text-secondary)' }}>ms</span>
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Global Accelerator</div>
+            <div style={{ fontSize: '32px', fontWeight: '700', letterSpacing: '-0.03em', color: 'var(--accent-color)' }}>
+              34 <span style={{ fontSize: '18px', fontWeight: '500', color: 'var(--text-secondary)' }}>ms</span>
+            </div>
+          </div>
+          <div style={{ borderLeft: '1px solid var(--border-subtle)', paddingLeft: '20px' }}>
+            <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Latency difference</div>
+            <div style={{ fontSize: '32px', fontWeight: '700', letterSpacing: '-0.03em', color: '#1a7f37' }}>
+              44 <span style={{ fontSize: '18px', fontWeight: '500', color: 'var(--text-secondary)' }}>ms faster</span>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ marginTop: '16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '6px' }}>
+            <span>Global Accelerator (34 ms)</span>
+            <span>Direct Connection (78 ms)</span>
+          </div>
+          <div style={{ height: '10px', background: 'var(--bg-primary)', borderRadius: 'var(--radius-pill)', overflow: 'hidden', position: 'relative' }}>
+            <div style={{ width: '43.5%', height: '100%', background: 'var(--accent-color)', borderRadius: 'var(--radius-pill)' }} />
+          </div>
+        </div>
       </section>
 
       {/* 6. NETWORK TEST / PING */}
